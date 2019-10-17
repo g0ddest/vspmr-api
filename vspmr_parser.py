@@ -1,5 +1,6 @@
 import subprocess
 import re
+import os
 import requests
 from bs4 import BeautifulSoup
 import tempfile
@@ -11,6 +12,7 @@ event_db = client.vspmr.event
 file_db = client.vspmr.file
 init_db = client.vspmr.initiation
 base_url = "http://www.vspmr.org"
+os.chdir("lib")
 
 
 def get_doc_text(file):
@@ -20,7 +22,7 @@ def get_doc_text(file):
 
 
 def get_doc_text_with_err(file):
-    proc = subprocess.Popen('lib/doctotext ' + file, stdout=subprocess.PIPE, shell=True)
+    proc = subprocess.Popen('./doctotext.sh ' + file, stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
     return {"out": out.decode("utf-8"), err: err}
 
