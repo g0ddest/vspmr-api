@@ -1,10 +1,12 @@
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, Response
 from pymongo import MongoClient
+from starlette.middleware.cors import CORSMiddleware
 import uvicorn
 import re
 
 app = Starlette(debug=True)
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
 client = MongoClient('localhost', 27017)
 
 event_db = client.vspmr.event
