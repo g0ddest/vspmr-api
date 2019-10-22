@@ -69,7 +69,7 @@ async def init_info(request):
         "text": e["text"],
         "files": e["files"],
         "committee": e["committee"] if "committee" in e else None,
-        "committee_url": base_url + e["committee"],
+        "committee_url": (base_url + e["committee"]) if "committee" in e else None,
         "author": e["author"],
         "note": e["note"],
         "reads": []
