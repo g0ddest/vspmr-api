@@ -1,0 +1,107 @@
+body {
+    font-family: 'GolosWebTextRegular', Helvetica, Arial, sans-serif;
+    color: #2B2B28;
+    background-color: #F8F8F8;
+    margin: 0;
+}
+
+.content {
+    width: 770px;
+    margin: 0 auto;
+}
+
+header.big{
+    font-family: 'GolosWebTextDemiBold';
+    text-align: center;
+    font-weight: bold;
+    font-style: normal;
+    padding-top: 60px;
+    padding-bottom: 50px;
+    position: relative;
+    line-height: 43px;
+}
+
+header.big span.pre {
+    position: absolute;
+    font-size: 60px;
+    color: #F66767;
+    padding-left: 45px;
+}
+
+header.big span {
+    display:block;
+}
+
+header.big span.title{
+    font-size: 60px;
+}
+
+header.big span.subtitle {
+    font-size: 24px;
+    margin: 0;
+}
+
+header.small{
+    font-family: 'GolosWebTextBold';
+    font-weight: bold;
+    font-style: normal;
+    font-size: 36px;
+    padding: 30px;
+    display: none;
+}
+
+header.small .red {
+    font-family: 'GolosWebTextBold';
+    font-size: 42px;
+    color: #F66767;
+}
+
+article {
+    font-family: 'GolosWebTextDemiBold', Helvetica, Arial, sans-serif;
+    background-color: #EDEDED;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 25px;
+    margin-bottom: 15px;
+    transition: background-color 300ms linear;
+}
+
+article:hover{
+    background-color: #E5E5E5;
+}
+
+article .head {
+    height: 45px;
+}
+
+article .number{
+    float: left;
+    font-size: 32px;
+    padding-right: 15px;
+}
+
+article .read {
+    float:right;
+    font-size: 28px;
+    padding-left: 15px;
+}
+
+article .text {
+    color: #F66767;
+    text-decoration: none;
+}
+
+@media only screen and (max-width: 790px) {
+    .content {
+        width: 100%;
+    }
+}
+
+@media only screen and (max-width: 730px) {
+    header.big {
+        display: none;
+    }
+    header.small {
+        display: block;
+    }
+}
