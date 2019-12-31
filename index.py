@@ -1,18 +1,33 @@
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, Response
-from pymongo import MongoClient
+from starlette.templating import Jinja2Templates
+from starlette.routing import Route, Mount
+from starlette.staticfiles import StaticFiles
+from pymongo import MongoClient, DESCENDING
 from starlette.middleware.cors import CORSMiddleware
 import uvicorn
 import re
 
-app = Starlette(debug=True)
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
 client = MongoClient('localhost', 27017)
 
 event_db = client.vspmr.event
 file_db = client.vspmr.file
 init_db = client.vspmr.initiation
 entry_db = client.vspmr.initiation_entry
+
+templates = Jinja2Templates(directory='templates')
+
+
+async def homepage(request):
+    entries = [e for e in entry_db.find({"conv": "VI"}, limit=20)]
+
+    return templates.TemplateResponse('index.html', {'request': request, 'id': 1, 'entries': [entry for entry in entries]})
+
+app = Starlette(debug=True, routes=[
+    Route('/', endpoint=homepage),
+    Mount('/static', StaticFiles(directory='static'), name='static')
+])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
 
 base_url = "http://www.vspmr.org"
 

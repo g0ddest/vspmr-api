@@ -1,0 +1,46 @@
+<html lang="ru">
+
+    <head>
+        <title>Верховный Совет Приднестровья — законодательная деятельность</title>
+        <meta charset="utf-8" />
+        <meta name="theme-color" content="#F66767" />
+        <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
+        <meta name="title" content="Верховный Совет Приднестровья — законодательная деятельность" />
+        <meta property="og:site_name" content="Законодательная деятельность Верховного Совета ПМР" />
+        <meta property="og:type" content="website" />
+        <link rel="stylesheet" type="text/css" href="static/fonts/Golos_Text%20Black/Golos_Text%20Black.css" as="style" />
+        <link rel="stylesheet" type="text/css" href="static/fonts/Golos_Text%20Bold/Golos_Text%20Bold.css" as="style" />
+        <link rel="stylesheet" type="text/css" href="static/fonts/Golos_Text%20DemiBold/Golos_Text%20DemiBold.css" as="style" />
+        <link rel="stylesheet" type="text/css" href="static/fonts/Golos_Text%20Medium/Golos_Text%20Medium.css" as="style" />
+        <link rel="stylesheet" type="text/css" href="static/fonts/Golos_Text%20Regular/Golos_Text%20Regular.css" as="style" />
+        <link rel="stylesheet" type="text/css" href="static/style.css" />
+    </head>
+
+    <body>
+        <div class="content">
+            <header class="big">
+                <span class="pre">—</span>
+                <span class="title">Верховный Совет</span>
+                <span class="subtitle">Приднестровской Молдавской Республики</span>
+            </header>
+
+            <header class="small">
+                <span class="title"><span class="red">—</span> ВС ПМР</span>
+            </header>
+
+            <main>
+{% for entry in entries %}
+          <article>
+                        <div class="head">
+                            <div class="number">{{ entry.number }}</div>
+    <!--                        <div class="read">2 чтение</div>-->
+                        </div>
+                        <a href="/entry/{{ entry.number }}" class="text">{{ entry.name }}</a>
+                    </article>
+{% endfor %}
+
+            </main>
+        </div>
+    </body>
+
+</html>
