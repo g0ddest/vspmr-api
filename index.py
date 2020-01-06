@@ -56,7 +56,8 @@ async def item(request):
             "time": event["begin"]
         })
 
-    sorted(e["reads"], key=lambda item: item["date"]).reverse()
+    sorted(e["reads"], key=lambda item: item["date"])
+    e["reads"] = e["reads"].reverse()
 
     return templates.TemplateResponse('item.html',
                                       {'request': request, 'entry': e})
