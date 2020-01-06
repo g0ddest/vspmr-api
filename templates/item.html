@@ -36,10 +36,8 @@
                         <div class="read_line"><span class="read">{{ r.read }}</span> <a href="{{ r.event_url }}" target="_blank"><data value="{{ r.timestamp }}">{{ r.date }} {{ r.time }}</data></a></div>
                     {% endfor %}
                 {% endif %}
-                <article>
-                    <div>
+                <article class="text">
                         {{ entry.texthtml|safe }}
-                    </div>
                 </article>
             </main>
         </div>

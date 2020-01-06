@@ -146,3 +146,8 @@ main .read_line .read {
 main .read_line a {
     color: #2B2B28;
 }
+
+.text {
+    font-family: 'GolosWebTextRegular', Helvetica, Arial, sans-serif!important;
+    font-weight: normal!important;
+}
