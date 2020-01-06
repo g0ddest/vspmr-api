@@ -1,3 +1,4 @@
+import markdown2
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, Response
 from starlette.templating import Jinja2Templates
@@ -14,17 +15,55 @@ event_db = client.vspmr.event
 file_db = client.vspmr.file
 init_db = client.vspmr.initiation
 entry_db = client.vspmr.initiation_entry
+entries_per_page = 20
 
 templates = Jinja2Templates(directory='templates')
 
 
 async def homepage(request):
-    entries = [e for e in entry_db.find({"conv": "VI"}, limit=20)]
+    page = int(request.query_params["page"]) if "page" in request.query_params else 0
+    entries = [e for e in entry_db.find({"conv": "VI"}, limit=entries_per_page).skip(page * entries_per_page)]
 
-    return templates.TemplateResponse('index.html', {'request': request, 'id': 1, 'entries': [entry for entry in entries]})
+    return templates.TemplateResponse('index.html', {'request': request, 'id': 1, 'entries': [entry for entry in entries] , 'next': page + 1, 'prev': page - 1})
+
+
+async def item(request):
+    e = entry_db.find({
+        "number": request.path_params["entry"],
+        "conv": "VI"
+    }).limit(1)
+
+    try:
+        e = e[0]
+    except:
+        return Response(status_code=404)
+
+    inits = init_db.find({
+        "number": re.sub("\(.+\)", "", e["number"]).strip(),
+        "conv": "VI"
+    })
+
+    e['reads'] = []
+    e['texthtml'] = markdown2.markdown(e['text'])
+
+    for init in inits:
+        file = file_db.find({"url": init["file_url"]}).limit(1)[0]
+        event = event_db.find({"href": init["event_url"]}).limit(1)[0]
+        e["reads"].append({
+            "read": init['read'],
+            "event_url": base_url + init["event_url"],
+            "date": file["date"],
+            "time": event["begin"]
+        })
+
+    sorted(e["reads"], key=lambda item: item["date"]).reverse()
+
+    return templates.TemplateResponse('item.html',
+                                      {'request': request, 'entry': e})
 
 app = Starlette(debug=True, routes=[
     Route('/', endpoint=homepage),
+    Route('/entry/{entry}', endpoint=item),
     Mount('/static', StaticFiles(directory='static'), name='static')
 ])
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])

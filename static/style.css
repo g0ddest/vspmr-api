@@ -98,10 +98,51 @@ article .text {
 }
 
 @media only screen and (max-width: 730px) {
+    h1, h2, h3, h4{
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+@media only screen and (max-width: 730px) {
     header.big {
         display: none;
     }
     header.small {
         display: block;
     }
+}
+
+main nav a {
+    font-size: 20px;
+    padding: 20px;
+    text-decoration: none;
+}
+
+main nav a.prev {
+    float: left;
+}
+
+main nav a.next {
+    float: right;
+}
+
+main .read_line{
+    padding: 20px;
+    font-size: 18px;
+}
+
+main .read_line .read {
+    background: blueviolet;
+    padding: 5px 12px;
+    width: 42px;
+    height: 20px;
+    color: white;
+    border-radius: 25px;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+main .read_line a {
+    color: #2B2B28;
 }
