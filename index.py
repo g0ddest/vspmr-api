@@ -5,6 +5,7 @@ from starlette.templating import Jinja2Templates
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
 from pymongo import MongoClient, DESCENDING
+from pymongo.collation import Collation
 from starlette.middleware.cors import CORSMiddleware
 import uvicorn
 import re
@@ -24,7 +25,10 @@ templates = Jinja2Templates(directory='templates')
 
 async def homepage(request):
     page = int(request.query_params["page"]) if "page" in request.query_params else 0
-    entries = [e for e in entry_db.find({"conv": "VI"}, limit=entries_per_page).skip(page * entries_per_page)]
+    entries = [e for e in entry_db.find({"conv": "VI"}, limit=entries_per_page)
+        .sort([('number', DESCENDING)])
+        .collation(Collation('ru', numericOrdering=True))
+        .skip(page * entries_per_page)]
 
     return templates.TemplateResponse('index.html', {'request': request, 'id': 1, 'entries': [entry for entry in entries] , 'next': page + 1, 'prev': page - 1})
 
