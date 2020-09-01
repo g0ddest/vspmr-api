@@ -1,6 +1,8 @@
+import io
+
 import markdown2
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse, Response, StreamingResponse
 from starlette.templating import Jinja2Templates
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
@@ -11,6 +13,7 @@ import uvicorn
 import re
 import datetime
 import time
+from PIL import Image, ImageDraw, ImageFont
 
 client = MongoClient('localhost', 27017)
 
@@ -30,12 +33,19 @@ async def homepage(request):
         .collation(Collation('ru', numericOrdering=True))
         .skip(page * entries_per_page)]
 
-    return templates.TemplateResponse('index.html', {'request': request, 'id': 1, 'entries': [entry for entry in entries] , 'next': page + 1, 'prev': page - 1})
+    return templates.TemplateResponse('index.html',
+                                      {'request': request, 'id': 1, 'entries': [entry for entry in entries],
+                                       'next': page + 1, 'prev': page - 1})
 
 
 async def item(request):
+    entry_id = request.path_params["entry"]
+
+    if "additional" in request.path_params:
+        entry_id = "{0}/{1}".format(entry_id, request.path_params["additional"])
+
     e = entry_db.find({
-        "number": request.path_params["entry"],
+        "number": entry_id,
         "conv": "VI"
     }).limit(1)
 
@@ -50,6 +60,7 @@ async def item(request):
     })
 
     e['reads'] = []
+    e['date_formatted'] = datetime.datetime.strptime(e["date"], '%d.%m.%Y').strftime('%Y-%m-%d')
     e['texthtml'] = markdown2.markdown(e['text'])
 
     for init in inits:
@@ -60,7 +71,8 @@ async def item(request):
             "event_url": base_url + init["event_url"],
             "date": file["date"],
             "time": event["begin"],
-            "timestamp": time.mktime(datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple())
+            "timestamp": time.mktime(
+                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple())
         })
 
     e["reads"] = sorted(e["reads"], key=lambda item: item['timestamp'])
@@ -69,9 +81,47 @@ async def item(request):
     return templates.TemplateResponse('item.html',
                                       {'request': request, 'entry': e})
 
+
+def save_pil_image_to_bytes(img):
+    out = io.BytesIO()
+    img.save(out, format='PNG')
+    out.seek(0)
+    return out
+
+
+async def preview(request):
+    entry_id = request.path_params["entry"]
+
+    if "additional" in request.path_params:
+        entry_id = "{0}/{1}".format(entry_id, request.path_params["additional"])
+
+    e = entry_db.find({
+        "number": entry_id,
+        "conv": "VI"
+    }).limit(1)
+
+    try:
+        e = e[0]
+    except:
+        return Response(status_code=404)
+
+    img = Image.new('RGB', (2048, 1170), color='white')
+
+    font = ImageFont.truetype("static/fonts/Golos_Text Medium/Golos_Text Medium.ttf", 120)
+    fontHeader = ImageFont.truetype("static/fonts/Golos_Text Bold/Golos_Text Bold.ttf", 180)
+    draw = ImageDraw.Draw(img)
+    draw.text((200, 700), "Верховный Совет", (0, 0, 0), font=fontHeader)
+    draw.text((200, 900), "Законопроект  {0}".format(e['number']), (0, 0, 0), font=font)
+
+    return StreamingResponse(save_pil_image_to_bytes(img), media_type="image/png")
+
+
 app = Starlette(debug=True, routes=[
     Route('/', endpoint=homepage),
     Route('/entry/{entry}', endpoint=item),
+    Route('/preview/{entry}.png', endpoint=preview),
+    Route('/entry/{entry}/{additional}', endpoint=item),
+    Route('/preview/{entry}/{additional}.png', endpoint=preview),
     Mount('/static', StaticFiles(directory='static'), name='static')
 ])
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])

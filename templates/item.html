@@ -1,6 +1,6 @@
-<html lang="ru">
+<html lang="ru" prefix="og: http://ogp.me/ns# article: https://ogp.me/ns/article#" >
 
-    <head>
+    <meta>
         <title>Верховный Совет Приднестровья — законопроект: {{ entry.title }}</title>
         <meta charset="utf-8" />
         <meta name="theme-color" content="#F66767" />
@@ -8,6 +8,11 @@
         <meta name="title" content="Верховный Совет Приднестровья — законопроект: {{ entry.title }}" />
         <meta property="og:site_name" content="Законодательная деятельность Верховного Совета ПМР" />
         <meta property="og:type" content="website" />
+        <meta property="og:type" content="article">
+        <meta property="og:image" content="/preview/{{ entry.number | urlencode }}.png" />
+        <meta property="og:url" content="/entry/{{ entry.number | urlencode }}"/>
+        <meta property="article:published_time" content="{{ entry.date_formatted }}">
+        <meta property="og:title" content="Законопроект ПМР {{ entry.number }} : {{ entry.name }}">
         <link rel="stylesheet" type="text/css" href="/static/fonts/Golos_Text%20Black/Golos_Text%20Black.css" as="style" />
         <link rel="stylesheet" type="text/css" href="/static/fonts/Golos_Text%20Bold/Golos_Text%20Bold.css" as="style" />
         <link rel="stylesheet" type="text/css" href="/static/fonts/Golos_Text%20DemiBold/Golos_Text%20DemiBold.css" as="style" />

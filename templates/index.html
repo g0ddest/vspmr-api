@@ -35,7 +35,7 @@
                             <div class="number">{{ entry.number }}</div>
     <!--                        <div class="read">2 чтение</div>-->
                         </div>
-                        <a href="/entry/{{ entry.number | urlencode |replace('/', '%2f') }}" class="text">{{ entry.name }}</a>
+                        <a href="/entry/{{ entry.number | urlencode }}" class="text">{{ entry.name }}</a>
                     </article>
 {% endfor %}
 
