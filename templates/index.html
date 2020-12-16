@@ -35,19 +35,19 @@
                             <div class="number">{{ entry.number }}</div>
     <!--                        <div class="read">2 чтение</div>-->
                         </div>
-                        <a href="/entry/{{ entry.number | urlencode }}" class="text">{{ entry.name }}</a>
+                        <a href="/entry/conv-{{ conv }}/{{ entry.number | urlencode }}" class="text">{{ entry.name }}</a>
                     </article>
 {% endfor %}
 
                 {% if show_pages %}
                 <nav>
                 {% if prev > 0 %}
-                    <a class="prev" href="/?page={{ prev }}">← Назад</a>
+                    <a class="prev" href="/conv-{{ conv }}/?page={{ prev }}">← Назад</a>
                 {% endif %}
                 {% if prev == 0 %}
                     <a class="prev" href="/">← Назад</a>
                 {% endif %}
-                    <a class="next" href="/?page={{ next }}">Вперед →</a>
+                    <a class="next" href="/conv-{{ conv }}/?page={{ next }}">Вперед →</a>
                 </nav>
                 {% endif %}
             </main>

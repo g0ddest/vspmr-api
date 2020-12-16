@@ -42,7 +42,8 @@ async def homepage(request):
     return templates.TemplateResponse('index.html',
                                       {'request': request, 'id': 1, 'entries': [entry for entry in entries],
                                        'show_pages': len(entries) > entries_per_page,
-                                       'next': page + 1, 'prev': page - 1})
+                                       'next': page + 1, 'prev': page - 1,
+                                       'conv': conv})
 
 
 async def item(request):
