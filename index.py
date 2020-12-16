@@ -87,15 +87,14 @@ async def item(request):
             "date": file["date"],
             "time": event["begin"],
             "timestamp": time.mktime(
-                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple()),
-            "conv": conv
+                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple())
         })
 
     e["reads"] = sorted(e["reads"], key=lambda item: item['timestamp'])
     e["reads"] = reversed(e["reads"])
 
     return templates.TemplateResponse('item.html',
-                                      {'request': request, 'entry': e})
+                                      {'request': request, 'entry': e, "conv": conv})
 
 
 def save_pil_image_to_bytes(img):
