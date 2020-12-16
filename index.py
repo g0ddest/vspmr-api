@@ -73,7 +73,8 @@ async def item(request):
     })
 
     e['reads'] = []
-    e['date_formatted'] = datetime.datetime.strptime(e["date"], '%d.%m.%Y').strftime('%Y-%m-%d')
+    if e["date"] is not None and e["date"] != "":
+        e['date_formatted'] = datetime.datetime.strptime(e["date"], '%d.%m.%Y').strftime('%Y-%m-%d')
     e['texthtml'] = markdown2.markdown(e['text'])
 
     for init in inits:
