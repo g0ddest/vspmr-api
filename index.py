@@ -31,7 +31,7 @@ last_conv = "VII"
 async def homepage(request):
     conv = last_conv
     if "conv" in request.path_params:
-        conv = request.path_params["entry"]
+        conv = request.path_params["conv"]
 
     page = int(request.query_params["page"]) if "page" in request.query_params else 0
     entries = [e for e in entry_db.find({"conv": conv}, limit=entries_per_page)
@@ -51,7 +51,7 @@ async def item(request):
     conv = last_conv
 
     if "conv" in request.path_params:
-        conv = request.path_params["entry"]
+        conv = request.path_params["conv"]
 
     if "additional" in request.path_params:
         entry_id = "{0}/{1}".format(entry_id, request.path_params["additional"])
