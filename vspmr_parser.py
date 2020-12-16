@@ -100,7 +100,12 @@ def get_events(page):
 
         parse_event(link['href'])
 
-    maxpage = soup.findAll("div", {"class": "pages"})[0].findAll("a", text='»')
+    pages = soup.findAll("div", {"class": "pages"})
+
+    if len(pages) > 0:
+        maxpage = soup.findAll("div", {"class": "pages"})[0].findAll("a", text='»')
+    else:
+        return 1
     if len(maxpage) == 1:
         ret['maxurl'] = maxpage[0]['href'].replace('?page=', '')
 
