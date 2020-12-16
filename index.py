@@ -45,7 +45,7 @@ async def item(request):
 
     conv = last_conv
 
-    if request.path_params["conv"]:
+    if "conv" in request.path_params:
         conv = request.path_params["entry"]
 
     if "additional" in request.path_params:
