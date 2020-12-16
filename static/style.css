@@ -34,11 +34,13 @@ header.big span {
 
 header.big span.title{
     font-size: 60px;
+    color: #2B2B28;
 }
 
 header.big span.subtitle {
     font-size: 24px;
     margin: 0;
+    color: #2B2B28;
 }
 
 header.small{
@@ -150,4 +152,8 @@ main .read_line a {
 .text {
     font-family: 'GolosWebTextRegular', Helvetica, Arial, sans-serif!important;
     font-weight: normal!important;
+}
+
+.home {
+    text-decoration: none;
 }
