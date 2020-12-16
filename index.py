@@ -25,28 +25,35 @@ entries_per_page = 20
 
 templates = Jinja2Templates(directory='templates')
 
+last_conv = "VII"
 
 async def homepage(request):
     page = int(request.query_params["page"]) if "page" in request.query_params else 0
-    entries = [e for e in entry_db.find({"conv": "VII"}, limit=entries_per_page)
+    entries = [e for e in entry_db.find({"conv": last_conv}, limit=entries_per_page)
         .sort([('number', DESCENDING)])
         .collation(Collation('ru', numericOrdering=True))
         .skip(page * entries_per_page)]
 
     return templates.TemplateResponse('index.html',
                                       {'request': request, 'id': 1, 'entries': [entry for entry in entries],
+                                       'show_pages': len(entries) > entries_per_page,
                                        'next': page + 1, 'prev': page - 1})
 
 
 async def item(request):
     entry_id = request.path_params["entry"]
 
+    conv = last_conv
+
+    if request.path_params["conv"]:
+        conv = request.path_params["entry"]
+
     if "additional" in request.path_params:
         entry_id = "{0}/{1}".format(entry_id, request.path_params["additional"])
 
     e = entry_db.find({
         "number": entry_id,
-        "conv": "VII"
+        "conv": conv
     }).limit(1)
 
     try:
@@ -56,7 +63,7 @@ async def item(request):
 
     inits = init_db.find({
         "number": re.sub("\(.+\)", "", e["number"]).strip(),
-        "conv": "VII"
+        "conv": conv
     })
 
     e['reads'] = []
@@ -97,7 +104,7 @@ async def preview(request):
 
     e = entry_db.find({
         "number": entry_id,
-        "conv": "VII"
+        "conv": last_conv
     }).limit(1)
 
     try:
@@ -119,6 +126,7 @@ async def preview(request):
 app = Starlette(debug=True, routes=[
     Route('/', endpoint=homepage),
     Route('/entry/{entry}', endpoint=item),
+    Route('/entry/conv-{conv}/{entry}', endpoint=item),
     Route('/preview/{entry}.png', endpoint=preview),
     Route('/entry/{entry}/{additional}', endpoint=item),
     Route('/preview/{entry}/{additional}.png', endpoint=preview),

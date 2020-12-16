@@ -39,6 +39,7 @@
                     </article>
 {% endfor %}
 
+                {% if show_pages %}
                 <nav>
                 {% if prev > 0 %}
                     <a class="prev" href="/?page={{ prev }}">← Назад</a>
@@ -48,6 +49,7 @@
                 {% endif %}
                     <a class="next" href="/?page={{ next }}">Вперед →</a>
                 </nav>
+                {% endif %}
             </main>
         </div>
     </body>
