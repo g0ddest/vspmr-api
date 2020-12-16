@@ -9,8 +9,8 @@ entry_db = client.vspmr.initiation_entry
 
 base_url = "http://www.vspmr.org"
 last_conv = {
-    'url': 'vi-soziv',
-    'name': 'VI'
+    'url': 'vii-soziv',
+    'name': 'VII'
 }
 
 

@@ -28,7 +28,7 @@ templates = Jinja2Templates(directory='templates')
 
 async def homepage(request):
     page = int(request.query_params["page"]) if "page" in request.query_params else 0
-    entries = [e for e in entry_db.find({"conv": "VI"}, limit=entries_per_page)
+    entries = [e for e in entry_db.find({"conv": "VII"}, limit=entries_per_page)
         .sort([('number', DESCENDING)])
         .collation(Collation('ru', numericOrdering=True))
         .skip(page * entries_per_page)]
@@ -46,7 +46,7 @@ async def item(request):
 
     e = entry_db.find({
         "number": entry_id,
-        "conv": "VI"
+        "conv": "VII"
     }).limit(1)
 
     try:
@@ -56,7 +56,7 @@ async def item(request):
 
     inits = init_db.find({
         "number": re.sub("\(.+\)", "", e["number"]).strip(),
-        "conv": "VI"
+        "conv": "VII"
     })
 
     e['reads'] = []
@@ -97,7 +97,7 @@ async def preview(request):
 
     e = entry_db.find({
         "number": entry_id,
-        "conv": "VI"
+        "conv": "VII"
     }).limit(1)
 
     try:
