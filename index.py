@@ -34,16 +34,15 @@ async def homepage(request):
         conv = request.path_params["conv"]
 
     page = int(request.query_params["page"]) if "page" in request.query_params else 0
-    entries = [e for e in entry_db.find({"conv": conv}, limit=entries_per_page)
+    mongo_entries = entry_db.find({"conv": conv}, limit=entries_per_page)
+    entries = [e for e in mongo_entries
         .sort([('number', DESCENDING)])
         .collation(Collation('ru', numericOrdering=True))
         .skip(page * entries_per_page)]
 
-    count = entry_db.count({"conv": conv}, limit=entries_per_page)
-
     return templates.TemplateResponse('index.html',
                                       {'request': request, 'id': 1, 'entries': [entry for entry in entries],
-                                       'show_pages': count > entries_per_page,
+                                       'show_pages': mongo_entries.count() > entries_per_page,
                                        'next': page + 1, 'prev': page - 1,
                                        'conv': conv})
 
