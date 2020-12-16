@@ -9,7 +9,7 @@
         <meta property="og:site_name" content="Законодательная деятельность Верховного Совета ПМР" />
         <meta property="og:type" content="website" />
         <meta property="og:type" content="article">
-        <meta property="og:image" content="/preview/{{ entry.number | urlencode }}.png" />
+        <meta property="og:image" content="/preview/conv-{{ conv }}/{{ entry.number | urlencode }}.png" />
         <meta property="og:url" content="/entry/{{ entry.number | urlencode }}"/>
         <meta property="article:published_time" content="{{ entry.date_formatted }}">
         <meta property="og:title" content="Законопроект ПМР {{ entry.number }} : {{ entry.name }}">

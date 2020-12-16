@@ -87,7 +87,8 @@ async def item(request):
             "date": file["date"],
             "time": event["begin"],
             "timestamp": time.mktime(
-                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple())
+                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple()),
+            "conv": conv
         })
 
     e["reads"] = sorted(e["reads"], key=lambda item: item['timestamp'])
@@ -135,9 +136,10 @@ app = Starlette(debug=True, routes=[
     Route('/', endpoint=homepage),
     Route('/conv-{conv}', endpoint=homepage),
     Route('/entry/{entry}', endpoint=item),
-    Route('/entry/conv-{conv}/{entry}', endpoint=item),
-    Route('/preview/{entry}.png', endpoint=preview),
+    Route('/conv-{conv}/entry/{entry}', endpoint=item),
+    Route('/preview/conv-{conv}/{entry}.png', endpoint=preview),
     Route('/entry/{entry}/{additional}', endpoint=item),
+    Route('/conv-{conv}/entry/{entry}/{additional}', endpoint=item),
     Route('/preview/{entry}/{additional}.png', endpoint=preview),
     Mount('/static', StaticFiles(directory='static'), name='static')
 ])
