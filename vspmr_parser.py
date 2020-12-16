@@ -105,7 +105,8 @@ def get_events(page):
     if len(pages) > 0:
         maxpage = pages[0].findAll("a", text='»')
     else:
-        return 1
+        ret['maxurl'] = 1
+        return ret
     if len(maxpage) == 1:
         ret['maxurl'] = maxpage[0]['href'].replace('?page=', '')
 
