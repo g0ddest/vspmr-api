@@ -103,7 +103,7 @@ def get_events(page):
     pages = soup.findAll("div", {"class": "pages"})
 
     if len(pages) > 0:
-        maxpage = soup.findAll("div", {"class": "pages"})[0].findAll("a", text='»')
+        maxpage = pages[0].findAll("a", text='»')
     else:
         return 1
     if len(maxpage) == 1:
