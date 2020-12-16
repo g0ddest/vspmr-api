@@ -27,9 +27,14 @@ templates = Jinja2Templates(directory='templates')
 
 last_conv = "VII"
 
+
 async def homepage(request):
+    conv = last_conv
+    if "conv" in request.path_params:
+        conv = request.path_params["entry"]
+
     page = int(request.query_params["page"]) if "page" in request.query_params else 0
-    entries = [e for e in entry_db.find({"conv": last_conv}, limit=entries_per_page)
+    entries = [e for e in entry_db.find({"conv": conv}, limit=entries_per_page)
         .sort([('number', DESCENDING)])
         .collation(Collation('ru', numericOrdering=True))
         .skip(page * entries_per_page)]
@@ -125,6 +130,7 @@ async def preview(request):
 
 app = Starlette(debug=True, routes=[
     Route('/', endpoint=homepage),
+    Route('/conv-{conv}', endpoint=homepage),
     Route('/entry/{entry}', endpoint=item),
     Route('/entry/conv-{conv}/{entry}', endpoint=item),
     Route('/preview/{entry}.png', endpoint=preview),
