@@ -81,13 +81,28 @@ async def item(request):
     for init in inits:
         file = file_db.find({"url": init["file_url"]}).limit(1)[0]
         event = event_db.find({"href": init["event_url"]}).limit(1)[0]
+
+        timestamp = None
+
+        try:
+            timestamp = time.mktime(
+                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple())
+        except:
+            pass
+
+        try:
+            timestamp = time.mktime(
+                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H:%M").timetuple())
+        except:
+            pass
+
+
         e["reads"].append({
             "read": init['read'],
             "event_url": base_url + init["event_url"],
             "date": file["date"],
             "time": event["begin"],
-            "timestamp": time.mktime(
-                datetime.datetime.strptime(file["date"] + " " + event["begin"], "%d.%m.%Y %H.%M").timetuple())
+            "timestamp": timestamp
         })
 
     e["reads"] = sorted(e["reads"], key=lambda item: item['timestamp'])
