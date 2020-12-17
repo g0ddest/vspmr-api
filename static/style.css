@@ -179,6 +179,10 @@ nav.conv a:hover {
     background-color: #E0E0E0;
 }
 
+nav.conv a span.help {
+    white-space: pre-wrap;
+}
+
 @media only screen and (max-width: 600px) {
     nav.conv a span.help {
         display: none;
