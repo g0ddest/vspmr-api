@@ -91,7 +91,7 @@ async def item(request):
         })
 
     e["reads"] = sorted(e["reads"], key=lambda item: item['timestamp'])
-    e["reads"] = reversed(e["reads"])
+    e["reads"] = list(reversed(e["reads"]))
     e["has_reads"] = e["reads"] and len(e["reads"]) > 0
 
     return templates.TemplateResponse('item.html',
