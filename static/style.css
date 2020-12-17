@@ -172,7 +172,7 @@ nav.conv a {
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: 0.5s;
+    transition: background-color 0.5s ease;;
 }
 
 nav.conv a:hover {
