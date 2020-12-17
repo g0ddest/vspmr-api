@@ -52,6 +52,10 @@ header.small{
     display: none;
 }
 
+header.small .title{
+    color: #2B2B28;
+}
+
 header.small .red {
     font-family: 'GolosWebTextBold';
     font-size: 42px;
@@ -154,7 +158,7 @@ main .read_line a {
     font-weight: normal!important;
 }
 
-.home {
+.header {
     text-decoration: none;
 }
 
