@@ -1,6 +1,6 @@
 <html lang="ru" prefix="og: http://ogp.me/ns# article: https://ogp.me/ns/article#" >
 
-    <meta>
+    <head>
         <title>Верховный Совет Приднестровья — законопроект: {{ entry.title }}</title>
         <meta charset="utf-8" />
         <meta name="theme-color" content="#F66767" />
@@ -37,7 +37,7 @@
 
             <main>
                 <h1>{{ entry.number }} : {{ entry.name }}</h1>
-                {% if entry.reads %}
+                {% if entry.has_reads %}
                     <h2>Чтения:</h2>
                     {% for r in entry.reads %}
                         <div class="read_line"><span class="read">{{ r.read }}</span> <a href="{{ r.event_url }}" target="_blank"><data value="{{ r.timestamp }}">{{ r.date }} {{ r.time }}</data></a></div>

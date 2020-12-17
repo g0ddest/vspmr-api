@@ -92,6 +92,7 @@ async def item(request):
 
     e["reads"] = sorted(e["reads"], key=lambda item: item['timestamp'])
     e["reads"] = reversed(e["reads"])
+    e["has_reads"] = len(e["reads"]) > 0
 
     return templates.TemplateResponse('item.html',
                                       {'request': request, 'entry': e, "conv": conv})
@@ -134,6 +135,7 @@ async def preview(request):
 app = Starlette(debug=True, routes=[
     Route('/', endpoint=homepage),
     Route('/conv-{conv}', endpoint=homepage),
+    Route('/conv-{conv}/', endpoint=homepage),
     Route('/entry/{entry}', endpoint=item),
     Route('/conv-{conv}/entry/{entry}', endpoint=item),
     Route('/preview/conv-{conv}/{entry}.png', endpoint=preview),

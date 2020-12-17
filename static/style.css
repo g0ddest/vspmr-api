@@ -157,3 +157,24 @@ main .read_line a {
 .home {
     text-decoration: none;
 }
+
+nav.conv {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    margin-bottom: 10px;
+}
+
+nav.conv a {
+    font-size: 26px;
+    background-color: #EDEDED;
+    color: #2B2B28;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.5s;
+}
+
+nav.conv a:hover {
+    background-color: #E0E0E0;
+}
