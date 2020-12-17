@@ -123,12 +123,15 @@ def save_pil_image_to_bytes(img):
 async def preview(request):
     entry_id = request.path_params["entry"]
 
+    if "conv" in request.path_params:
+        conv = request.path_params["conv"]
+
     if "additional" in request.path_params:
         entry_id = "{0}/{1}".format(entry_id, request.path_params["additional"])
 
     e = entry_db.find({
         "number": entry_id,
-        "conv": last_conv
+        "conv": conv
     }).limit(1)
 
     try:
