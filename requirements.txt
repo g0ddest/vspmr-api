@@ -8,7 +8,7 @@ html2text==2020.1.16
 httptools==0.1.1
 idna==2.10
 Jinja2==2.11.3
-markdown2==2.3.9
+markdown2==2.4.0
 MarkupSafe==1.1.1
 pymongo==3.11.0
 requests==2.24.0
