@@ -13,6 +13,7 @@ file_db = client.vspmr.file
 init_db = client.vspmr.initiation
 base_url = "http://www.vspmr.org"
 os.chdir("lib")
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
 
 
 def get_doc_text_with_err(file):
@@ -41,7 +42,7 @@ def parse_day(event_url, file_url, content):
 
 
 def parse_file_get_content(url, suffix):
-    response = requests.get(base_url + url)
+    response = requests.get(base_url + url, headers=headers)
     temp = tempfile.NamedTemporaryFile(suffix=suffix)
     try:
         temp.write(response.content)
@@ -52,7 +53,7 @@ def parse_file_get_content(url, suffix):
 
 def parse_event(url):
     date_string = ""
-    response = requests.get(base_url + url)
+    response = requests.get(base_url + url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     cnt = soup.findAll("div", {"class": "big"})[0]
     date = cnt.findAll("div", {"class": "p"})
@@ -81,7 +82,7 @@ def parse_event(url):
 
 def get_events(page):
     ret = {}
-    response = requests.get(base_url + "/news/events/?page=" + str(page))
+    response = requests.get(base_url + "/news/events/?page=" + str(page), headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     for calendar in soup.findAll("div", {"class": "calendar_b"}):
         link = calendar.parent.find("a")
