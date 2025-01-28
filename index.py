@@ -14,6 +14,8 @@ import re
 import datetime
 import time
 from PIL import Image, ImageDraw, ImageFont
+from aiocache import cached, Cache
+import aiocache
 
 client = MongoClient('localhost', 27017)
 
@@ -27,6 +29,7 @@ templates = Jinja2Templates(directory='templates')
 
 last_conv = "VII"
 
+cache = Cache(Cache.MEMORY, ttl=10800)
 
 async def homepage(request):
     conv = last_conv
@@ -168,6 +171,7 @@ base_url = "http://www.vspmr.org"
 
 
 @app.route('/list')
+@cached(ttl=10800, cache=cache)
 async def init_list(request):
     entries = entry_db.find({
         "conv": request.query_params["conv"]
