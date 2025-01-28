@@ -1,4 +1,5 @@
 import io
+import os
 
 import markdown2
 from starlette.applications import Starlette
@@ -16,7 +17,9 @@ import time
 from PIL import Image, ImageDraw, ImageFont
 from aiocache import cached, Cache
 
-client = MongoClient('localhost', 27017)
+mongoHost = os.environ["DB_HOST"] if "DB_HOST" in os.environ else "localhost"
+mongoPort = int(os.environ["DB_PORT"]) if "DB_PORT" in os.environ else 27017
+client = MongoClient(mongoHost, mongoPort)
 
 event_db = client.vspmr.event
 file_db = client.vspmr.file
