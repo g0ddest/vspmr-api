@@ -7,6 +7,8 @@ client = MongoClient('localhost', 27017)
 db = client.vspmr
 entry_db = client.vspmr.initiation_entry
 
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
+
 base_url = "http://www.vspmr.org"
 last_conv = {
     'url': 'vii-soziv',
@@ -40,11 +42,11 @@ def get_page_text(text):
 
 
 def get_note_text(url):
-    return get_page_text(requests.get(base_url + url).text)
+    return get_page_text(requests.get(base_url + url).text, headers=headers)
 
 
 def get_initiation_info(url):
-    response = requests.get(base_url + url)
+    response = requests.get(base_url + url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
     page_text = get_page_text(response.text)
@@ -84,7 +86,7 @@ def get_initiation_info(url):
 
 def get_initiations(page):
     ret = {}
-    response = requests.get(base_url + "/legislation/bills/" + last_conv["url"] + "/?page=" + str(page))
+    response = requests.get(base_url + "/legislation/bills/" + last_conv["url"] + "/?page=" + str(page), headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
     for row in soup.find("div", {"class": "p"}).findAll("tr"):
