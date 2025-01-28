@@ -15,7 +15,6 @@ import datetime
 import time
 from PIL import Image, ImageDraw, ImageFont
 from aiocache import cached, Cache
-import aiocache
 
 client = MongoClient('localhost', 27017)
 
@@ -29,8 +28,6 @@ templates = Jinja2Templates(directory='templates')
 
 last_conv = "VII"
 
-cache = Cache(Cache.MEMORY, ttl=10800)
-
 async def homepage(request):
     conv = last_conv
     if "conv" in request.path_params:
@@ -38,6 +35,7 @@ async def homepage(request):
 
     page = int(request.query_params["page"]) if "page" in request.query_params else 0
     mongo_entries = entry_db.find({"conv": conv}, limit=entries_per_page)
+    records_count = entry_db.count_documents({"conv": conv})
     entries = [e for e in mongo_entries
         .sort([('number', DESCENDING)])
         .collation(Collation('ru', numericOrdering=True))
@@ -45,7 +43,7 @@ async def homepage(request):
 
     return templates.TemplateResponse('index.html',
                                       {'request': request, 'id': 1, 'entries': [entry for entry in entries],
-                                       'show_pages': mongo_entries.count() > entries_per_page,
+                                       'show_pages': records_count > entries_per_page,
                                        'next': page + 1, 'prev': page - 1,
                                        'conv': conv})
 
@@ -171,7 +169,7 @@ base_url = "http://www.vspmr.org"
 
 
 @app.route('/list')
-@cached(ttl=10800, cache=cache)
+@cached(ttl=10800, cache=Cache.MEMORY)
 async def init_list(request):
     entries = entry_db.find({
         "conv": request.query_params["conv"]
@@ -203,6 +201,7 @@ async def init_list(request):
 
 
 @app.route('/init')
+@cached(ttl=10800, cache=Cache.MEMORY)
 async def init_info(request):
     e = entry_db.find({
         "number": request.query_params["number"],
