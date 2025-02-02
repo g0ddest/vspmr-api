@@ -1,9 +1,14 @@
+import os
+
+import time
 import html2text
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 
-client = MongoClient('localhost', 27017)
+mongoHost = os.environ["DB_HOST"] if "DB_HOST" in os.environ else "localhost"
+mongoPort = int(os.environ["DB_PORT"]) if "DB_PORT" in os.environ else 27017
+client = MongoClient(mongoHost, mongoPort)
 db = client.vspmr
 entry_db = client.vspmr.initiation_entry
 
@@ -46,6 +51,8 @@ def get_note_text(url):
 
 
 def get_initiation_info(url):
+    time.sleep(1)
+    print("getting initiation info: " + url)
     response = requests.get(base_url + url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
