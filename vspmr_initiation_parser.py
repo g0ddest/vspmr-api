@@ -14,7 +14,7 @@ entry_db = client.vspmr.initiation_entry
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
 
-base_url = "http://www.vspmr.org"
+base_url = os.environ["VS_HOST"] if "VS_HOST" in os.environ else "http://www.vspmr.org"
 last_conv = {
     'url': 'vii-soziv',
     'name': 'VII'
