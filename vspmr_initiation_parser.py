@@ -55,10 +55,10 @@ def fetch(url):
         print("try = " + str(i))
         note = requests.get(base_url + url, headers=headers)
         text = note.text
+        time.sleep(10)
         if text != "ANTIDDOS":
             break
         print("faced ddos protection, waiting 10 seconds")
-        time.sleep(10)
         i = i + 1
         if i > 20:
             raise Exception("too many attempts")
