@@ -57,7 +57,8 @@ def fetch(url):
         text = note.text
         if text != "ANTIDDOS":
             break
-        time.sleep(5)
+        print("faced ddos protection, waiting 10 seconds")
+        time.sleep(10)
         i = i + 1
         if i > 20:
             raise Exception("too many attempts")
@@ -108,8 +109,8 @@ def get_initiation_info(url):
 
 def get_initiations(page):
     ret = {}
-    response = requests.get(base_url + "/legislation/bills/" + last_conv["url"] + "/?page=" + str(page), headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    response = fetch("/legislation/bills/" + last_conv["url"] + "/?page=" + str(page))
+    soup = BeautifulSoup(response, 'html.parser')
 
     for row in soup.find("div", {"class": "p"}).findAll("tr"):
         elems = row.findAll("td")
