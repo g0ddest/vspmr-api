@@ -73,7 +73,7 @@ async def item(request):
         return Response(status_code=404)
 
     inits = init_db.find({
-        "number": re.sub("\(.+\)", "", e["number"]).strip(),
+        "number": re.sub(r"\(.+\)", "", e["number"]).strip(),
         "conv": conv
     })
 
@@ -190,7 +190,7 @@ async def init_list(request):
             "read_numbers": []
         }
         inits = init_db.find({
-            "number": re.sub("\(.+\)", "", e["number"]).strip(),
+            "number": re.sub(r"\(.+\)", "", e["number"]).strip(),
             "conv": e["conv"]
         })
 
@@ -232,7 +232,7 @@ async def init_info(request):
     }
 
     inits = init_db.find({
-        "number": re.sub("\(.+\)", "", request.query_params["number"]).strip(),
+        "number": re.sub(r"\(.+\)", "", request.query_params["number"]).strip(),
         "conv": request.query_params["conv"]
     })
 
