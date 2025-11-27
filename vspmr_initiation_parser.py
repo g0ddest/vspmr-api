@@ -1,6 +1,6 @@
 import os
-
 import time
+
 import html2text
 import requests
 from bs4 import BeautifulSoup
@@ -14,7 +14,7 @@ entry_db = client.vspmr.initiation_entry
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36'}
 
-base_url = os.environ["VS_HOST"] if "VS_HOST" in os.environ else "http://www.vspmr.org"
+base_url = os.environ["VS_HOST"] if "VS_HOST" in os.environ else "https://vspmr.org"
 last_conv = {
     'url': 'vii-soziv',
     'name': 'VII'
@@ -47,16 +47,30 @@ def get_page_text(text):
 
 
 def get_note_text(url):
-    return get_page_text(requests.get(base_url + url).text, headers=headers)
+    return get_page_text(fetch(url))
+
+def fetch(url):
+    i = 1
+    while True:
+        print("try = " + str(i))
+        note = requests.get(base_url + url, headers=headers)
+        text = note.text
+        if text != "ANTIDDOS":
+            break
+        time.sleep(5)
+        i = i + 1
+        if i > 20:
+            raise Exception("too many attempts")
+    return text
 
 
 def get_initiation_info(url):
     time.sleep(1)
     print("getting initiation info: " + url)
-    response = requests.get(base_url + url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    response = fetch(url)
+    soup = BeautifulSoup(response, 'html.parser')
 
-    page_text = get_page_text(response.text)
+    page_text = get_page_text(response)
 
     info = {
         "text": page_text["text"],
@@ -76,6 +90,7 @@ def get_initiation_info(url):
         if meta_text.lower().startswith("автор"):
             info["author"] = ' '.join([m for m in meta_row.b.stripped_strings])
         if len(meta_row.findAll("a")) == 1 and meta_row.a.get("href").startswith("?"):
+            print("getting note for: " + url)
             note_text = get_note_text(url + "?&note=" + meta_row.a["href"].split("=")[1])
             info["note"] = note_text["text"]
             if note_text["file"]:
@@ -107,7 +122,10 @@ def get_initiations(page):
                 "date": ' '.join([m for m in elems[2].stripped_strings])
             }
 
-            if entry_db.count_documents({"url": elems[1].a["href"]}) == 0:
+            if entry_db.count_documents({
+                "url": elems[1].a["href"],
+                "number": initiation["number"],
+                "conv": initiation["conv"]}) == 0:
                 entry_db.insert_one({**initiation, **get_initiation_info(elems[1].a["href"])})
             else:
                 ret['found_record'] = True
@@ -115,7 +133,7 @@ def get_initiations(page):
     pages = soup.findAll("div", {"class": "pages"})
 
     if len(pages) > 0:
-        maxpage = pages[0].findAll("a", text='»')
+        maxpage = pages[0].findAll("a", string='»')
     else:
         ret['maxurl'] = 1
         return ret
