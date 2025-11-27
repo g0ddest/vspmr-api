@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -5,6 +6,13 @@ import html2text
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+
+session = requests.Session()
 
 mongoHost = os.environ["DB_HOST"] if "DB_HOST" in os.environ else "localhost"
 mongoPort = int(os.environ["DB_PORT"]) if "DB_PORT" in os.environ else 27017
@@ -52,22 +60,23 @@ def get_note_text(url):
 def fetch(url):
     i = 1
     while True:
-        print("try = " + str(i))
-        note = requests.get(base_url + url, headers=headers)
+        logging.info("try = " + str(i))
+        note = session.get(base_url + url, headers=headers)
         text = note.text
         time.sleep(10)
         if text != "ANTIDDOS":
             break
-        print("faced ddos protection, waiting 10 seconds")
+        logging.warning("faced ddos protection, waiting 10 seconds")
         i = i + 1
         if i > 20:
+            logging.error("too many attempts, stopping")
             raise Exception("too many attempts")
     return text
 
 
 def get_initiation_info(url):
     time.sleep(1)
-    print("getting initiation info: " + url)
+    logging.info("getting initiation info: " + url)
     response = fetch(url)
     soup = BeautifulSoup(response, 'html.parser')
 
@@ -91,7 +100,7 @@ def get_initiation_info(url):
         if meta_text.lower().startswith("автор"):
             info["author"] = ' '.join([m for m in meta_row.b.stripped_strings])
         if len(meta_row.findAll("a")) == 1 and meta_row.a.get("href").startswith("?"):
-            print("getting note for: " + url)
+            logging.info("getting note for: " + url)
             note_text = get_note_text(url + "?&note=" + meta_row.a["href"].split("=")[1])
             info["note"] = note_text["text"]
             if note_text["file"]:
@@ -143,12 +152,11 @@ def get_initiations(page):
 
     return ret
 
-
 def parse():
     page = 1
     maxpage = 7
     while page <= maxpage:
-        print("page " + str(page) + " / " + str(maxpage))
+        logging.info("page " + str(page) + " / " + str(maxpage))
         result = get_initiations(page)
         if 'found_record' in result:
             break
