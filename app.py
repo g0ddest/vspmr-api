@@ -171,12 +171,29 @@ app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], all
 base_url = "http://www.vspmr.org"
 
 
+def list_cache_key(func, request):
+    conv = request.query_params.get("conv", "")
+    offset = request.query_params.get("offset", "")
+    take = request.query_params.get("take", "")
+    return f"list:{conv}:{offset}:{take}"
+
+
 @app.route('/list')
-@cached(ttl=10800, cache=Cache.MEMORY)
+@cached(ttl=10800, cache=Cache.MEMORY, key_builder=list_cache_key)
 async def init_list(request):
-    entries = entry_db.find({
+    offset = int(request.query_params["offset"]) if "offset" in request.query_params else None
+    take = int(request.query_params["take"]) if "take" in request.query_params else None
+
+    query = entry_db.find({
         "conv": request.query_params["conv"]
     })
+
+    if offset is not None:
+        query = query.skip(offset)
+    if take is not None:
+        query = query.limit(take)
+
+    entries = query
 
     response = []
 
@@ -186,18 +203,8 @@ async def init_list(request):
             "conv": e["conv"],
             "name": e["name"],
             "url": base_url + e["url"],
-            "date": e["date"],
-            "read_numbers": []
+            "date": e["date"]
         }
-        inits = init_db.find({
-            "number": re.sub(r"\(.+\)", "", e["number"]).strip(),
-            "conv": e["conv"]
-        })
-
-        for i in inits:
-            if "read" in i and i["read"] not in r["read_numbers"]:
-                r["read_numbers"].append(i["read"])
-
         response.append(r)
 
     return JSONResponse(response)
