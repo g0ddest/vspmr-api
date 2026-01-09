@@ -1,0 +1,34 @@
+Privacy Policy
+
+Last updated: January 2026
+
+VSPMR Bills ("we", "our", or "us") operates the VSPMR Bills mobile application (the "App").
+
+Data Collection
+
+We do not collect, store, or process any personal data from users of our App. The App does not require user registration or login, and no personal information is requested or gathered.
+
+Third-Party Services
+
+The App connects to external servers solely to retrieve publicly available information about legislative bills. No user data is transmitted during these requests.
+
+Analytics and Tracking
+
+We do not use any analytics tools, tracking technologies, or advertising services. No usage data, device information, or behavioral data is collected.
+
+Cookies
+
+The App does not use cookies or similar tracking technologies.
+
+Children's Privacy
+
+Since we do not collect any personal data, our App is safe for users of all ages.
+
+Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time. Any changes will be reflected in the "Last updated" date at the top of this document.
+
+Contact Us
+
+If you have any questions about this Privacy Policy, please contact us at:
+vitaliy@velikodniy.name
