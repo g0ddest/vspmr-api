@@ -184,14 +184,44 @@ async def init_list(request):
     offset = int(request.query_params["offset"]) if "offset" in request.query_params else None
     take = int(request.query_params["take"]) if "take" in request.query_params else None
 
-    query = entry_db.find({
-        "conv": request.query_params["conv"]
-    })
-
+    pipeline = [
+        {"$match": {"conv": request.query_params["conv"]}},
+        {"$addFields": {
+            "numberNumeric": {
+                "$toInt": {
+                    "$getField": {
+                        "field": "match",
+                        "input": {
+                            "$regexFind": {
+                                "input": "$number",
+                                "regex": "^[0-9]+"
+                            }
+                        }
+                    }
+                }
+            },
+            "numberSuffix": {
+                "$getField": {
+                    "field": "match",
+                    "input": {
+                        "$regexFind": {
+                            "input": "$number",
+                            "regex": "/(.+)$"
+                        }
+                    }
+                }
+            }
+        }},
+        {"$sort": {
+            "numberNumeric": -1,
+            "numberSuffix": 1
+        }}
+    ]
     if offset is not None:
-        query = query.skip(offset)
+        pipeline.append({"$skip": offset})
     if take is not None:
-        query = query.limit(take)
+        pipeline.append({"$limit": take})
+    query = entry_db.aggregate(pipeline)
 
     entries = query
 
