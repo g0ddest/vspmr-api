@@ -24,8 +24,8 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 base_url = os.environ["VS_HOST"] if "VS_HOST" in os.environ else "https://vspmr.org"
 last_conv = {
-    'url': 'vii-soziv',
-    'name': 'VII'
+    'url': 'viii-soziv',
+    'name': 'VIII'
 }
 
 
