@@ -32,26 +32,29 @@ last_conv = {
 def get_page_text(text):
     soup = BeautifulSoup(text, 'html.parser')
 
-    found = soup.find("div", {"class": "column_2"}).find("div", {"class": "block"}).findAll("div", {"class", "p"},
-                                                                                            recursive=False)
+    entry_content = soup.find("div", {"class": "entry-content"})
+    # Text is now in div.p after block_50
+    block_50 = entry_content.find("div", {"class": "block_50"})
+    found = block_50.find_next_sibling("div", {"class": "p"}) if block_50 else entry_content.find("div", {"class": "p"}, recursive=False)
 
-    file_is_first = len(found) > 1 and found[0].a is not None
-    file_idx = 0 if file_is_first else 1
-    text_idx = 1 if file_is_first else 0
+    # File link is in col-2 inside block_50
+    file_info = None
+    if block_50:
+        col_2 = block_50.find("div", {"class": "col-2"})
+        if col_2:
+            file_link = col_2.find("div", {"class": "p"})
+            if file_link:
+                url = file_link.find("a")
+                if url and url.get("href") and url.get("href").startswith("/file"):
+                    file_info = {
+                        "name": ' '.join([m for m in url.stripped_strings]),
+                        "url": url.get("href")
+                    }
 
-    if len(found) == 1:
-        return {
-            "text": html2text.html2text(str(found[text_idx]).strip("\n")),
-            "file": None
-        }
-    else:
-        return {
-            "text": html2text.html2text(str(found[text_idx]).strip("\n")),
-            "file": {
-                "name": ' '.join([m for m in found[file_idx].stripped_strings]),
-                "url": found[file_idx].find("a").get("href")
-            }
-        }
+    return {
+        "text": html2text.html2text(str(found).strip("\n")) if found else "",
+        "file": file_info
+    }
 
 
 def get_note_text(url):
@@ -63,12 +66,12 @@ def fetch(url):
         logging.info("try = " + str(i))
         note = session.get(base_url + url, headers=headers)
         text = note.text
-        time.sleep(10)
+        time.sleep(12)
         if text != "ANTIDDOS":
             break
         logging.warning("faced ddos protection, waiting 10 seconds")
         i = i + 1
-        if i > 20:
+        if i > 10:
             logging.error("too many attempts, stopping")
             raise Exception("too many attempts")
     return text
@@ -91,27 +94,32 @@ def get_initiation_info(url):
         info["files"].append(page_text["file"])
 
     # meta
-    for meta_row in soup.find("div", {"class": "column_2"}).find("div", {"class": "col-1"}).findAll("div",
-                                                                                                    {"class": "p"}):
-        meta_text = ' '.join([m for m in meta_row.stripped_strings])
-        if len(meta_row.findAll("a")) == 1 and meta_row.a["href"].startswith("/structure"):
-            info["committee"] = ' '.join([m for m in meta_row.a.stripped_strings])
-            info["committee_url"] = meta_row.a["href"]
-        if meta_text.lower().startswith("автор"):
-            info["author"] = ' '.join([m for m in meta_row.b.stripped_strings])
-        if len(meta_row.findAll("a")) == 1 and meta_row.a.get("href").startswith("?"):
-            logging.info("getting note for: " + url)
-            note_text = get_note_text(url + "?&note=" + meta_row.a["href"].split("=")[1])
-            info["note"] = note_text["text"]
-            if note_text["file"]:
-                info["files"].append(note_text["file"])
+    block_50 = soup.find("div", {"class": "block_50"})
+    if block_50:
+        col_1 = block_50.find("div", {"class": "col-1"})
+        if col_1:
+            for meta_row in col_1.find_all("div", {"class": "p"}):
+                meta_text = ' '.join([m for m in meta_row.stripped_strings])
+                if len(meta_row.find_all("a")) == 1 and meta_row.a["href"].startswith("/structure"):
+                    info["committee"] = ' '.join([m for m in meta_row.a.stripped_strings])
+                    info["committee_url"] = meta_row.a["href"]
+                if meta_text.lower().startswith("автор"):
+                    info["author"] = ' '.join([m for m in meta_row.b.stripped_strings])
+                if len(meta_row.find_all("a")) == 1 and meta_row.a.get("href").startswith("?"):
+                    logging.info("getting note for: " + url)
+                    note_text = get_note_text(url + "?&note=" + meta_row.a["href"].split("=")[1])
+                    info["note"] = note_text["text"]
+                    if note_text["file"]:
+                        info["files"].append(note_text["file"])
 
-    # files
-    for file in soup.find("div", {"class": "column_2"}).find("div", {"class": "col-2"}).findAll("a"):
-        info["files"].append({
-            "name": ' '.join([m for m in file.stripped_strings]),
-            "url": file.get("href")
-        })
+        # files
+        col_2 = block_50.find("div", {"class": "col-2"})
+        if col_2:
+            for file in col_2.find_all("a"):
+                info["files"].append({
+                    "name": ' '.join([m for m in file.stripped_strings]),
+                    "url": file.get("href")
+                })
 
     return info
 
@@ -121,15 +129,16 @@ def get_initiations(page):
     response = fetch("/legislation/bills/" + last_conv["url"] + "/?page=" + str(page))
     soup = BeautifulSoup(response, 'html.parser')
 
-    for row in soup.find("div", {"class": "p"}).findAll("tr"):
-        elems = row.findAll("td")
-        if len(elems) == 3:
+    for row in soup.find("div", {"class": "p"}).find_all("tr"):
+        elems = row.find_all("td")
+        if len(elems) == 2:
             initiation = {
                 "number": ' '.join([m for m in elems[0].stripped_strings]),
                 "conv": last_conv["name"],
                 "name": ' '.join([m for m in elems[1].a.stripped_strings]),
                 "url": elems[1].a["href"],
-                "date": ' '.join([m for m in elems[2].stripped_strings])
+                # "date": ' '.join([m for m in elems[2].stripped_strings])
+                "date": ""
             }
 
             if entry_db.count_documents({
@@ -140,10 +149,10 @@ def get_initiations(page):
             else:
                 ret['found_record'] = True
 
-    pages = soup.findAll("div", {"class": "pages"})
+    pages = soup.find_all("div", {"class": "nav-links"})
 
     if len(pages) > 0:
-        maxpage = pages[0].findAll("a", string='»')
+        maxpage = pages[0].find_all("a", string='»')
     else:
         ret['maxurl'] = 1
         return ret
