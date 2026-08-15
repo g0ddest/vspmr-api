@@ -57,7 +57,7 @@ async def _publish(subject, payload):
     import nats
     from nats.js.api import StreamConfig, StorageType
 
-    opts = {}
+    opts = {"allow_reconnect": False}
     if nats_creds:
         opts["user_credentials"] = nats_creds
     nc = await nats.connect(nats_url, **opts)
