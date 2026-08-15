@@ -7,6 +7,8 @@ import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 
+import publisher
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -145,7 +147,9 @@ def get_initiations(page):
                 "url": elems[1].a["href"],
                 "number": initiation["number"],
                 "conv": initiation["conv"]}) == 0:
-                entry_db.insert_one({**initiation, **get_initiation_info(elems[1].a["href"])})
+                entry = {**initiation, **get_initiation_info(elems[1].a["href"])}
+                entry_db.insert_one(entry)
+                publisher.publish_new_bill(entry)
             else:
                 ret['found_record'] = True
 
