@@ -30,6 +30,11 @@
 
             <main>
 
+            <form class="search-form" action="/search" method="get">
+                <input type="text" name="q" placeholder="Поиск по номеру или названию" value="{{ search_query or '' }}" />
+                <button type="submit">Найти</button>
+            </form>
+
             <nav class="conv">
                 <a href="/conv-V">V 👴</a> <a href="/conv-VI">VI 👨‍</a> <a href="/conv-VII">VII 👦</a> <a href="/conv-VIII">VIII 👶</a>
             </nav>
@@ -40,19 +45,29 @@
                             <div class="number">{{ entry.number }}</div>
     <!--                        <div class="read">2 чтение</div>-->
                         </div>
-                        <a href="/conv-{{ conv }}/entry/{{ entry.number | urlencode }}" class="text">{{ entry.name }}</a>
+                        <a href="/conv-{{ entry.conv }}/entry/{{ entry.number | urlencode }}" class="text">{{ entry.name }}</a>
                     </article>
 {% endfor %}
 
                 {% if show_pages %}
                 <nav>
-                {% if prev > 0 %}
+                {% if search_query %}
+                    {% if prev > 0 %}
+                    <a class="prev" href="/search?q={{ search_query | urlencode }}&page={{ prev }}">← Назад</a>
+                    {% endif %}
+                    {% if prev == 0 %}
+                    <a class="prev" href="/search?q={{ search_query | urlencode }}">← Назад</a>
+                    {% endif %}
+                    <a class="next" href="/search?q={{ search_query | urlencode }}&page={{ next }}">Вперед →</a>
+                {% else %}
+                    {% if prev > 0 %}
                     <a class="prev" href="/conv-{{ conv }}/?page={{ prev }}">← Назад</a>
-                {% endif %}
-                {% if prev == 0 %}
+                    {% endif %}
+                    {% if prev == 0 %}
                     <a class="prev" href="/">← Назад</a>
-                {% endif %}
+                    {% endif %}
                     <a class="next" href="/conv-{{ conv }}/?page={{ next }}">Вперед →</a>
+                {% endif %}
                 </nav>
                 {% endif %}
             </main>
