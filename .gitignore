@@ -1,3 +1,7 @@
-.venv
-lib/*
-.idea
+.venv/
+lib/
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+.pytest_cache/
