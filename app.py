@@ -44,11 +44,11 @@ async def homepage(request):
         .collation(Collation('ru', numericOrdering=True))
         .skip(page * entries_per_page)]
 
-    return templates.TemplateResponse('index.html',
-                                      {'request': request, 'id': 1, 'entries': [entry for entry in entries],
+    return templates.TemplateResponse(request, 'index.html',
+                                      {'id': 1, 'entries': [entry for entry in entries],
                                        'show_pages': records_count > entries_per_page,
                                        'next': page + 1, 'prev': page - 1,
-                                       'conv': conv})
+                                       'conv': conv, 'search_query': ''})
 
 
 async def item(request):
@@ -113,8 +113,8 @@ async def item(request):
     e["reads"] = list(reversed(e["reads"]))
     e["has_reads"] = e["reads"] and len(e["reads"]) > 0
 
-    return templates.TemplateResponse('item.html',
-                                      {'request': request, 'entry': e, "conv": conv})
+    return templates.TemplateResponse(request, 'item.html',
+                                      {'entry': e, "conv": conv})
 
 
 def save_pil_image_to_bytes(img):
@@ -154,19 +154,39 @@ async def preview(request):
     return StreamingResponse(save_pil_image_to_bytes(img), media_type="image/png")
 
 
-app = Starlette(debug=True, routes=[
-    Route('/', endpoint=homepage),
-    Route('/conv-{conv}', endpoint=homepage),
-    Route('/conv-{conv}/', endpoint=homepage),
-    Route('/entry/{entry}', endpoint=item),
-    Route('/conv-{conv}/entry/{entry}', endpoint=item),
-    Route('/preview/conv-{conv}/{entry}.png', endpoint=preview),
-    Route('/entry/{entry}/{additional}', endpoint=item),
-    Route('/conv-{conv}/entry/{entry}/{additional}', endpoint=item),
-    Route('/preview/{entry}/{additional}.png', endpoint=preview),
-    Mount('/static', StaticFiles(directory='static'), name='static')
-])
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
+def int_param(request, name, default=None):
+    try:
+        return int(request.query_params[name])
+    except (KeyError, ValueError):
+        return default
+
+
+async def search_page(request):
+    q = request.query_params.get("q", "").strip()
+    if not q:
+        return templates.TemplateResponse(request, 'index.html',
+                                          {'entries': [],
+                                           'show_pages': False, 'next': 0, 'prev': 0,
+                                           'conv': last_conv, 'search_query': q})
+
+    page = int_param(request, "page", 0)
+    query_filter = {"$or": [
+        {"number": {"$regex": f"^{re.escape(q)}$", "$options": "i"}},
+        {"name": {"$regex": re.escape(q), "$options": "i"}}
+    ]}
+    records_count = entry_db.count_documents(query_filter)
+    entries = list(entry_db.find(query_filter)
+        .sort([('number', DESCENDING)])
+        .collation(Collation('ru', numericOrdering=True))
+        .skip(page * entries_per_page)
+        .limit(entries_per_page))
+
+    return templates.TemplateResponse(request, 'index.html',
+                                      {'entries': entries,
+                                       'show_pages': records_count > entries_per_page,
+                                       'next': page + 1, 'prev': page - 1,
+                                       'conv': last_conv, 'search_query': q})
+
 
 base_url = "http://www.vspmr.org"
 
@@ -178,7 +198,6 @@ def list_cache_key(func, request):
     return f"list:{conv}:{offset}:{take}"
 
 
-@app.route('/list')
 @cached(ttl=10800, cache=Cache.MEMORY, key_builder=list_cache_key)
 async def init_list(request):
     offset = int(request.query_params["offset"]) if "offset" in request.query_params else None
@@ -240,7 +259,76 @@ async def init_list(request):
     return JSONResponse(response)
 
 
-@app.route('/init')
+def search_cache_key(func, request):
+    q = request.query_params.get("q", "")
+    offset = request.query_params.get("offset", "")
+    take = request.query_params.get("take", "")
+    return f"search:{q}:{offset}:{take}"
+
+
+@cached(ttl=10800, cache=Cache.MEMORY, key_builder=search_cache_key)
+async def api_search(request):
+    q = request.query_params.get("q", "").strip()
+    if not q:
+        return JSONResponse([])
+
+    offset = int_param(request, "offset")
+    take = int_param(request, "take")
+
+    pipeline = [
+        {"$match": {"$or": [
+            {"number": {"$regex": f"^{re.escape(q)}$", "$options": "i"}},
+            {"name": {"$regex": re.escape(q), "$options": "i"}}
+        ]}},
+        {"$addFields": {
+            "numberNumeric": {
+                "$toInt": {
+                    "$getField": {
+                        "field": "match",
+                        "input": {
+                            "$regexFind": {
+                                "input": "$number",
+                                "regex": "^[0-9]+"
+                            }
+                        }
+                    }
+                }
+            },
+            "numberSuffix": {
+                "$getField": {
+                    "field": "match",
+                    "input": {
+                        "$regexFind": {
+                            "input": "$number",
+                            "regex": "/(.+)$"
+                        }
+                    }
+                }
+            }
+        }},
+        {"$sort": {
+            "numberNumeric": -1,
+            "numberSuffix": 1
+        }}
+    ]
+    if offset is not None:
+        pipeline.append({"$skip": offset})
+    if take is not None:
+        pipeline.append({"$limit": take})
+
+    response = []
+    for e in entry_db.aggregate(pipeline):
+        response.append({
+            "number": e["number"],
+            "conv": e["conv"],
+            "name": e["name"],
+            "url": base_url + e["url"],
+            "date": e["date"]
+        })
+
+    return JSONResponse(response)
+
+
 @cached(ttl=10800, cache=Cache.MEMORY)
 async def init_info(request):
     e = entry_db.find({
@@ -284,6 +372,25 @@ async def init_info(request):
         })
 
     return JSONResponse(entry)
+
+
+app = Starlette(debug=True, routes=[
+    Route('/', endpoint=homepage),
+    Route('/search', endpoint=search_page),
+    Route('/conv-{conv}', endpoint=homepage),
+    Route('/conv-{conv}/', endpoint=homepage),
+    Route('/entry/{entry}', endpoint=item),
+    Route('/conv-{conv}/entry/{entry}', endpoint=item),
+    Route('/preview/conv-{conv}/{entry}.png', endpoint=preview),
+    Route('/entry/{entry}/{additional}', endpoint=item),
+    Route('/conv-{conv}/entry/{entry}/{additional}', endpoint=item),
+    Route('/preview/{entry}/{additional}.png', endpoint=preview),
+    Route('/list', endpoint=init_list),
+    Route('/api/search', endpoint=api_search),
+    Route('/init', endpoint=init_info),
+    Mount('/static', StaticFiles(directory='static'), name='static')
+])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
 
 
 if __name__ == '__main__':

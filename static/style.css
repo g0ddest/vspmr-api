@@ -166,6 +166,38 @@ main .read_line a {
     text-decoration: none;
 }
 
+.search-form {
+    display: flex;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.search-form input {
+    flex: 1;
+    font-family: 'GolosWebTextRegular', Helvetica, Arial, sans-serif;
+    font-size: 18px;
+    padding: 12px 20px;
+    border: none;
+    background-color: #EDEDED;
+    color: #2B2B28;
+    outline: none;
+}
+
+.search-form button {
+    font-family: 'GolosWebTextDemiBold', Helvetica, Arial, sans-serif;
+    font-size: 18px;
+    padding: 12px 25px;
+    border: none;
+    background-color: #F66767;
+    color: white;
+    cursor: pointer;
+    transition: background-color 300ms linear;
+}
+
+.search-form button:hover {
+    background-color: #e04e4e;
+}
+
 nav.conv {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
