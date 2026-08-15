@@ -48,7 +48,7 @@ async def homepage(request):
                                       {'request': request, 'id': 1, 'entries': [entry for entry in entries],
                                        'show_pages': records_count > entries_per_page,
                                        'next': page + 1, 'prev': page - 1,
-                                       'conv': conv})
+                                       'conv': conv, 'search_query': ''})
 
 
 async def item(request):
@@ -154,8 +154,43 @@ async def preview(request):
     return StreamingResponse(save_pil_image_to_bytes(img), media_type="image/png")
 
 
+def int_param(request, name, default=None):
+    try:
+        return int(request.query_params[name])
+    except (KeyError, ValueError):
+        return default
+
+
+async def search_page(request):
+    q = request.query_params.get("q", "").strip()
+    if not q:
+        return templates.TemplateResponse('index.html',
+                                          {'request': request, 'entries': [],
+                                           'show_pages': False, 'next': 0, 'prev': 0,
+                                           'conv': last_conv, 'search_query': q})
+
+    page = int_param(request, "page", 0)
+    query_filter = {"$or": [
+        {"number": {"$regex": f"^{re.escape(q)}$", "$options": "i"}},
+        {"name": {"$regex": re.escape(q), "$options": "i"}}
+    ]}
+    records_count = entry_db.count_documents(query_filter)
+    entries = list(entry_db.find(query_filter)
+        .sort([('number', DESCENDING)])
+        .collation(Collation('ru', numericOrdering=True))
+        .skip(page * entries_per_page)
+        .limit(entries_per_page))
+
+    return templates.TemplateResponse('index.html',
+                                      {'request': request, 'entries': entries,
+                                       'show_pages': records_count > entries_per_page,
+                                       'next': page + 1, 'prev': page - 1,
+                                       'conv': last_conv, 'search_query': q})
+
+
 app = Starlette(debug=True, routes=[
     Route('/', endpoint=homepage),
+    Route('/search', endpoint=search_page),
     Route('/conv-{conv}', endpoint=homepage),
     Route('/conv-{conv}/', endpoint=homepage),
     Route('/entry/{entry}', endpoint=item),
@@ -236,6 +271,77 @@ async def init_list(request):
             "date": e["date"]
         }
         response.append(r)
+
+    return JSONResponse(response)
+
+
+def search_cache_key(func, request):
+    q = request.query_params.get("q", "")
+    offset = request.query_params.get("offset", "")
+    take = request.query_params.get("take", "")
+    return f"search:{q}:{offset}:{take}"
+
+
+@app.route('/api/search')
+@cached(ttl=10800, cache=Cache.MEMORY, key_builder=search_cache_key)
+async def api_search(request):
+    q = request.query_params.get("q", "").strip()
+    if not q:
+        return JSONResponse([])
+
+    offset = int_param(request, "offset")
+    take = int_param(request, "take")
+
+    pipeline = [
+        {"$match": {"$or": [
+            {"number": {"$regex": f"^{re.escape(q)}$", "$options": "i"}},
+            {"name": {"$regex": re.escape(q), "$options": "i"}}
+        ]}},
+        {"$addFields": {
+            "numberNumeric": {
+                "$toInt": {
+                    "$getField": {
+                        "field": "match",
+                        "input": {
+                            "$regexFind": {
+                                "input": "$number",
+                                "regex": "^[0-9]+"
+                            }
+                        }
+                    }
+                }
+            },
+            "numberSuffix": {
+                "$getField": {
+                    "field": "match",
+                    "input": {
+                        "$regexFind": {
+                            "input": "$number",
+                            "regex": "/(.+)$"
+                        }
+                    }
+                }
+            }
+        }},
+        {"$sort": {
+            "numberNumeric": -1,
+            "numberSuffix": 1
+        }}
+    ]
+    if offset is not None:
+        pipeline.append({"$skip": offset})
+    if take is not None:
+        pipeline.append({"$limit": take})
+
+    response = []
+    for e in entry_db.aggregate(pipeline):
+        response.append({
+            "number": e["number"],
+            "conv": e["conv"],
+            "name": e["name"],
+            "url": base_url + e["url"],
+            "date": e["date"]
+        })
 
     return JSONResponse(response)
 
