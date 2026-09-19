@@ -1,5 +1,5 @@
 aiocache==0.12.3
-anyio==4.11.0
+anyio==4.14.2
 beautifulsoup4==4.14.2
 bs4==0.0.2
 certifi==2025.11.12
